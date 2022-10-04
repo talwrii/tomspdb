@@ -2,9 +2,10 @@ import setuptools
 
 setuptools.setup(
     name="tomspdb",
-    version=0.2,
+    version=0.3,
     author="Talwrii",
     author_email="talwrii@gmail.com",
+    url="https://github.com/talwrii/tomspdb",
     description="",
     license="MIT",
     keywords="debugger",
