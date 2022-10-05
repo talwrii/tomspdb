@@ -4,4 +4,4 @@ set -e
 
 git push origin master:master
 python setup.py sdist
-twine upload dist/*
+twine upload dist/* --verbose
