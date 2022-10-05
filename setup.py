@@ -1,7 +1,11 @@
 import setuptools
 import os.path
+import os
 
 HERE = os.path.dirname(__file__)
+
+os.chdir(HERE)
+
 
 setuptools.setup(
     name="tomspdb",
