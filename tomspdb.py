@@ -31,32 +31,34 @@ class TomsPdb(pdb.Pdb):
         return True
 
     def do_get_pdb(self, arg: str):
+        "Get the pdb instance"
         del arg
         print("Set pself to pdb instance")
         self.curframe.f_globals["pself"] = self
 
     def do_top(self, arg: str):
+        "Jump to the top of the stack. Equivalent to top -1"
         del arg
-        print("Jump to the top of the stack. Equivalent to top -1")
         self._select_frame(0)
 
     do_T = do_top
 
     def do_bottom(self, arg: str):
+        "Jump to the top of the bottom of the stack. Equivalent to down -1"
         del arg
-        print("Jump to the top of the bottom of the stack. Equivalent to down -1")
         self._select_frame(len(self.stack) - 1)
 
     do_B = do_bottom
 
-    def do_get_frame(self, arg: str):
+    def do_get_frame(self, arg: str) -> FrameType:
+        "Get the python frame object"
         del arg
         print("Putting current frame in frame variable")
         self.curframe.f_globals["frame"] = self.curframe
 
     def do_pretty_where(self, arg: str):
+        "Print where we are in a pretty way"
         del arg
-        print("Print where we are in a pretty way")
 
         for frame_lineno in self.stack:
             self.pretty_print_stack_entry(frame_lineno)
@@ -78,14 +80,44 @@ class TomsPdb(pdb.Pdb):
         self.message(f"{prefix} {whose:10} {func_name:20} {filename:20} {lineno:20}")
 
     def do_my_code(self, arg: str):
-        del arg
         "Jump out of library code into your code"
+        del arg
         mycode_level = max(
             i for i, (x, _) in enumerate(self.stack) if self.in_my_code(x)
         )
         self._select_frame(mycode_level)
 
     do_my = do_my_code
+
+    def do_show_exception(self, arg: str):
+        "Show the current exception"
+        code = compile(
+            "import sys; __exception__ = sys.exc_info()[1]\n", "<stdin>", "single"
+        )
+        exec(
+            code, self.curframe_locals, self.curframe.f_globals
+        )  # pylint: disable=exec-used
+        print(repr(self.curframe.f_globals["__exception__"]))
+
+    do_e = do_show_exception
+
+    def do_show_func(self, arg: str):
+        "Get the current function"
+        del arg
+        import inspect
+
+        arginfo = inspect.getargvalues(self.curframe)
+        name = self.curframe.f_code.co_name
+        self.message(f"{name}({','.join(arginfo.args)})")
+
+    do_f = do_show_func
+
+    def do_show_file(self, arg: str):
+        "Get file we are current at"
+        del arg
+        self.message(self.curframe.f_code.co_filename)
+
+    do_file = do_show_file
 
 
 def main():
@@ -162,6 +194,13 @@ def main():
                 + mainpyfile
                 + " will be restarted"
             )
+
+
+def set_trace():
+    import sys  # pylint: disable=import-outside-toplevel
+
+    p = TomsPdb()
+    p.set_trace(sys._getframe().f_back)  # pylint: disable=protected-access
 
 
 if __name__ == "__main__":
