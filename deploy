@@ -2,6 +2,8 @@
 
 set -e
 
+rm -r sdist
+
 git push origin master:master
 python setup.py sdist
 twine upload dist/* --verbose
